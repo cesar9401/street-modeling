@@ -14,12 +14,12 @@ nodeB = Node('B')
 nodeC = Node('C')
 nodeD = Node('D')
 
-edgeA = Edge('A', 10, 100, None, nodeA)
-edgeAB = Edge('AB', 10, 100, nodeA, nodeB)
-edgeAC = Edge('AC', 10, 100, nodeA, nodeC)
-edgeBD = Edge('BD', 10, 100, nodeB, nodeD)
-edgeCD = Edge('CD', 10, 100, nodeC, nodeD)
-edgeD = Edge('D', 10, 100, nodeD, None)
+edgeA = Edge('A', None, nodeA)
+edgeAB = Edge('AB', nodeA, nodeB)
+edgeAC = Edge('AC', nodeA, nodeC)
+edgeBD = Edge('BD', nodeB, nodeD)
+edgeCD = Edge('CD', nodeC, nodeD)
+edgeD = Edge('D', nodeD, None)
 
 nodes: List[Node] = [nodeA, nodeB, nodeC, nodeD]
 edges: List[Edge] = [edgeA, edgeAB, edgeAC, edgeBD, edgeCD, edgeD]
