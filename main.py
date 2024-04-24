@@ -50,29 +50,3 @@ for node in nodes:
 population = random_population.random_population(POPULATION_SIZE, connections)
 for individual in population:
     print(individual.get_population_info())
-
-# adding nodes to dot file
-for node in nodes:
-    dot.node(node.id, node.label)
-
-# adding edges to dot file
-for edge in edges:
-    from_node: str = uuid.uuid4().__str__()
-    to_node: str = uuid.uuid4().__str__()
-    if edge.from_node:
-        from_node = edge.from_node.id
-    else:
-        dot.node(from_node, style='invis')
-
-    if edge.to_node:
-        to_node = edge.to_node.id
-    else:
-        dot.node(to_node, style='invis')
-
-    dot.edge(from_node, to_node, label=edge.label)
-
-for connection in connections:
-    print(connection.get_percentage_info())
-
-# render
-dot.render('dot/sample.gv', view=True, format='png')
