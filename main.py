@@ -6,9 +6,9 @@ import graphviz
 from model.edge import Edge
 from model.node import Node
 from model.edge_connection import EdgeConnection
-from geneticalgorithm import random_population
+from geneticalgorithm import random_population, suitable_function
 
-POPULATION_SIZE: int = 25
+POPULATION_SIZE: int = 100
 
 dot = graphviz.Digraph(comment='Sample')
 dot.attr(rankdir='LR')
@@ -47,6 +47,7 @@ for node in nodes:
             connections.append(connection)
 
 # todo: create population here
-population = random_population.random_population(POPULATION_SIZE, connections)
+
+population = random_population.random_population(POPULATION_SIZE, connections, suitable_function.calculate_fitness)
 for individual in population:
-    print(individual.get_population_info())
+    print(f'({individual.fitness}) {individual.get_population_info()}')
