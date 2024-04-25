@@ -1,4 +1,3 @@
-import uuid
 from typing import List
 
 import graphviz
@@ -47,7 +46,6 @@ for node in nodes:
             connections.append(connection)
 
 # todo: create population here
-
 population = random_population.random_population(POPULATION_SIZE, connections, suitable_function.calculate_fitness)
 for individual in population:
     print(f'({individual.fitness}) {individual.get_population_info()}')
