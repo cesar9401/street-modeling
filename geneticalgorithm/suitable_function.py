@@ -49,5 +49,4 @@ def calculate_fitness(ind: Individual) -> float:
     if len(sum_of_in_values) or len(sum_of_out_values) or not total_out_percentage:
         return 0
 
-    print(edge_cars_quantity)
     return total_cars_out / total_cars_in

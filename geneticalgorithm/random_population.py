@@ -1,3 +1,4 @@
+import math
 from typing import List
 
 from geneticalgorithm import individual, random_util, suitable_function
@@ -22,3 +23,18 @@ def random_population(
         new_individual.fitness = suitable_calc(new_individual)
         population.append(new_individual)
     return population
+
+
+def select_random_individual(population: List[individual.Individual]) -> individual.Individual:
+    size: int = len(population)
+    totals: list[int] = []
+    total: int = 0
+    for i in range(size):
+        total += math.ceil(population[i].fitness)
+        totals.append(total)
+
+    random_until_total_suitable: int = random_util.random_int(0, total - 1)
+    for i in range(size):
+        if random_until_total_suitable < totals[i]:
+            return population[i]
+    return population[size - 1]

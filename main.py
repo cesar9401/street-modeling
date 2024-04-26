@@ -5,12 +5,14 @@ import graphviz
 from model.edge import Edge
 from model.node import Node
 from model.edge_connection import EdgeConnection
-from geneticalgorithm import random_population, suitable_function
+from geneticalgorithm import random_population, suitable_function, individual, reproducer
 
 POPULATION_SIZE: int = 100
+MUTATION_PROBABLY: int = 10
+TOTAL_GENERATIONS: int = 1000
 
-dot = graphviz.Digraph(comment='Sample')
-dot.attr(rankdir='LR')
+# dot = graphviz.Digraph(comment='Sample')
+# dot.attr(rankdir='LR')
 
 node_w = Node('W')
 node_x = Node('X')
@@ -45,7 +47,32 @@ for node in nodes:
             connection = EdgeConnection(node, in_edge, out_edge)
             connections.append(connection)
 
+
 # todo: create population here
-population = random_population.random_population(POPULATION_SIZE, connections, suitable_function.calculate_fitness)
-for individual in population:
-    print(f'({individual.fitness}) {individual.get_population_info()}')
+
+
+def get_best_fitness() -> individual.Individual | None:
+    total_generations, total_mutations = 1, 0
+    population = random_population.random_population(POPULATION_SIZE, connections, suitable_function.calculate_fitness)
+
+    best = population[0]
+    while total_generations < TOTAL_GENERATIONS:
+        for ind in population:
+            if best.fitness < ind.fitness:
+                best = ind
+
+        total_generations += 1
+        print(f'Generation: {total_generations}')
+        new_population: list[individual.Individual] = []
+        for i in range(POPULATION_SIZE):
+            parent_x = random_population.select_random_individual(population)
+            parent_y = random_population.select_random_individual(population)
+            child_xy = reproducer.reproducer(parent_x, parent_y, suitable_function.calculate_fitness)
+            new_population.append(child_xy)
+
+        population = new_population
+    return best
+
+
+best_fitness = get_best_fitness()
+print(f'{best_fitness.get_population_info()}, fitness: {best_fitness.fitness}')
