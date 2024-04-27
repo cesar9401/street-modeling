@@ -5,10 +5,9 @@ from geneticalgorithm.individual import Individual
 
 def calculate_fitness(ind: Individual) -> float:
     # to check if the sum of percentages is not greater than 100%
-    in_percentage, out_percentage = dict(), dict()
-    total_in_percentage, total_out_percentage = 0, 0
-    total_cars_in, total_cars_out = 0, 0
-    edge_cars_quantity = dict()
+    in_percentage, out_percentage = {}, {}
+    total_out_percentage, total_cars_in, total_cars_out = 0, 0, 0
+    edge_cars_quantity, max_cars_in = {}, {}
 
     gens = ind.gens
     for gen in gens:
@@ -33,9 +32,10 @@ def calculate_fitness(ind: Individual) -> float:
         edge_cars_quantity[out_edge.id] += cars_in
 
         if not in_edge.from_node:
-            total_in_percentage += gen.current_percentage
             edge_cars_quantity[out_edge.id] = cars_in
-            total_cars_in += edge_cars_quantity[out_edge.id]
+            total_cars_in += cars_in
+            if in_edge.id not in max_cars_in:
+                max_cars_in[in_edge.id] = in_edge.capacity
         if not out_edge.to_node:
             total_out_percentage += gen.current_percentage
             # total number of vehicles leaving
@@ -49,4 +49,4 @@ def calculate_fitness(ind: Individual) -> float:
     if len(sum_of_in_values) or len(sum_of_out_values) or not total_out_percentage:
         return 0
 
-    return total_cars_out / total_cars_in
+    return (total_cars_out / total_cars_in) * (total_cars_out / sum(max_cars_in.values()))

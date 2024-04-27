@@ -5,11 +5,11 @@ import graphviz
 from model.edge import Edge
 from model.node import Node
 from model.edge_connection import EdgeConnection
-from geneticalgorithm import random_population, suitable_function, individual, reproducer
+from geneticalgorithm import random_population, suitable_function, individual, reproducer, random_util, mutator
 
 POPULATION_SIZE: int = 100
-MUTATION_PROBABLY: int = 10
-TOTAL_GENERATIONS: int = 1000
+MUTATION_PROBABLY: int = 25
+TOTAL_GENERATIONS: int = 100
 
 # dot = graphviz.Digraph(comment='Sample')
 # dot.attr(rankdir='LR')
@@ -68,11 +68,18 @@ def get_best_fitness() -> individual.Individual | None:
             parent_x = random_population.select_random_individual(population)
             parent_y = random_population.select_random_individual(population)
             child_xy = reproducer.reproducer(parent_x, parent_y, suitable_function.calculate_fitness)
-            new_population.append(child_xy)
+
+            if random_util.random_int(0, 100) >= MUTATION_PROBABLY:
+                new_population.append(child_xy)
+            else:
+                new_population.append(mutator.mutate(child_xy, suitable_function.calculate_fitness))
+                total_mutations += 1
 
         population = new_population
+
+    print(f'Total mutations: {total_mutations}')
+    print(f'{best.get_population_info()}, fitness: {best.fitness}')
     return best
 
 
 best_fitness = get_best_fitness()
-print(f'{best_fitness.get_population_info()}, fitness: {best_fitness.fitness}')
