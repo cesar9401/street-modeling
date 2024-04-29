@@ -33,16 +33,7 @@ class GraphWidget(QWidget):
         self.canvas = FigureCanvas(self.figure)
         grid.addWidget(self.canvas, 0, 1, 9, 9)
 
-        g = make_network()
-        node_pos = {node[0]: (node[1]['X'], -node[1]['Y']) for node in g.nodes(data=True)}
-        edge_col = [e[2]['attr_dict']['color'] for e in g.edges(data=True)]
-        nx.draw_networkx(g, pos=node_pos, arrows=True, edge_color=edge_col, node_size=2200, alpha=.85, node_color='c',
-                         with_labels=True)
-        labels = nx.get_edge_attributes(g, 'num_connections')
-        nx.draw_networkx_edge_labels(g, pos=node_pos, edge_labels=labels, font_color='black', alpha=.2)
-        plt.title('Matt\'s Life', size=15)
-        plt.axis("off")
-
+        self.make_network()
 
     def set_center(self):
         qr = self.frameGeometry()
@@ -82,29 +73,16 @@ class GraphWidget(QWidget):
     def submit_command(self):
         print('Submitted command', self.sender().objectName())
 
+    def make_network(self):
+        g = nx.DiGraph()
+        g.add_edge('node1', 'node2', label='A(100)')
+        nodes = {'node1': (1, 1), 'node2': (200, 100)}
 
-def make_network():
-    # Load Data
-    df = pd.read_csv("matt_test_network.csv")
-    # automate using predictions for full scale version
-    color = pd.DataFrame(
-        data=['silver'] * len(df.index))
-    df['color'] = color
-    g = nx.DiGraph()
+        nx.draw_networkx(g, pos=nodes, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
+        nx.draw_networkx_edge_labels(g, pos=nodes, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2)
 
-    # Add edges into network
-    for i, elrow in df.iterrows():
-        g.add_edge(elrow.iloc[0], elrow.iloc[1], attr_dict=elrow[2:].to_dict(), weight=1 / elrow['num_connections'])
-
-    # Manually add X and Y coords of nodes
-    nodeList = {'NodeName': ['home', 'ht', 'work', 'daycare', 'coffee'], 'X': [70, 405, 835, 300, 750],
-                'Y': [250, 300, 240, 450, 510]}
-    nodeFrame = pd.DataFrame(data=nodeList)
-    # add node properties
-    for i, nlrow in nodeFrame.iterrows():
-        g._node[nlrow.iloc[0]] = nlrow[1:].to_dict()
-
-    return g
+        plt.title('Demo')
+        plt.axis('off')
 
 
 app = QApplication(sys.argv)
