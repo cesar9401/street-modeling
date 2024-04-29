@@ -75,12 +75,17 @@ class GraphWidget(QWidget):
 
     def make_network(self):
         g = nx.DiGraph()
+        g.add_node('node1', pos=(100, 100))
+        g.add_node('node2', pos=(200, 100))
+        g.add_node('node3', pos=(400, 100))
         g.add_edge('node1', 'node2', label='A(100)')
-        nodes = {'node1': (1, 1), 'node2': (200, 100)}
 
-        nx.draw_networkx(g, pos=nodes, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
-        nx.draw_networkx_edge_labels(g, pos=nodes, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2)
+        pos = nx.get_node_attributes(g, 'pos')
+        nx.draw_networkx(g, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
 
+        nx.draw_networkx_edge_labels(
+            g, pos=pos, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2
+        )
         plt.title('Demo')
         plt.axis('off')
 
