@@ -1,3 +1,5 @@
 graphviz==0.20.3
 PyQt5==5.15.10
 matplotlib==3.8.4
+pandas==2.2.2
+networkx==3.3
