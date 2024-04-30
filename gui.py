@@ -10,6 +10,10 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 
 class GraphWidget(QWidget):
+    total_nodes = 1
+    adding_node = False
+    add_node_button = None
+
     def __init__(self):
         super(GraphWidget, self).__init__()
         self.figure = None
@@ -37,6 +41,8 @@ class GraphWidget(QWidget):
         self.canvas = FigureCanvas(self.figure)
         self.grid.addWidget(self.canvas, 0, 1, 9, 9)
 
+        self.canvas.mpl_connect('button_press_event', self.on_press)
+
         self.G = self.make_network()
 
     def set_center(self):
@@ -55,10 +61,10 @@ class GraphWidget(QWidget):
         vertical_group_box.setLayout(layout)
 
         # add node button
-        add_node_btn = QPushButton("Add Node")
-        add_node_btn.setObjectName("add_node_btn")
-        add_node_btn.clicked.connect(self.add_node)
-        layout.addWidget(add_node_btn)
+        self.add_node_btn = QPushButton("Add Node")
+        self.add_node_btn.setObjectName("add_node_btn")
+        self.add_node_btn.clicked.connect(self.add_node)
+        layout.addWidget(self.add_node_btn)
 
         # add edge button
         add_edge_btn = QPushButton("Add Edge")
@@ -78,24 +84,31 @@ class GraphWidget(QWidget):
         print('Submitted command', self.sender().objectName())
 
     def add_node(self):
-        print('Submitted command', self.sender().objectName())
-        self.figure = plt.figure()
-        self.canvas = FigureCanvas(self.figure)
-        self.grid.addWidget(self.canvas, 0, 1, 9, 9)
+        self.adding_node = not self.adding_node
+        if self.adding_node:
+            self.add_node_btn.setStyleSheet("background-color: #FF5722;")
+        else:
+            self.add_node_btn.setStyleSheet("background-color: none;")
 
-        self.G.add_node('node3', pos=(200, 300))
-
-        pos = nx.get_node_attributes(self.G, 'pos')
-
-        # plt.clf()
-        plt.title('Demo')
-        plt.axis('off')
-
-        nx.draw_networkx(self.G, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
-
-        nx.draw_networkx_edge_labels(
-            self.G, pos=pos, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2
-        )
+        # print('Submitted command', self.sender().objectName())
+        # self.figure = plt.figure()
+        # self.canvas = FigureCanvas(self.figure)
+        #
+        # self.grid.addWidget(self.canvas, 0, 1, 9, 9)
+        #
+        # self.G.add_node('node3', pos=(200, 300))
+        #
+        # pos = nx.get_node_attributes(self.G, 'pos')
+        #
+        # # plt.clf()
+        # plt.title('Demo')
+        # plt.axis('off')
+        #
+        # nx.draw_networkx(self.G, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
+        #
+        # nx.draw_networkx_edge_labels(
+        #     self.G, pos=pos, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2
+        # )
 
     def add_edge(self):
         self.figure = plt.figure()
@@ -132,6 +145,18 @@ class GraphWidget(QWidget):
         plt.axis('off')
 
         return g
+
+    def on_press(self, event):
+        if not self.adding_node:
+            return
+
+        # TODO: add the node here
+        print("press")
+        print("event.xdata", event.xdata)
+        print("event.ydata", event.ydata)
+        print("event.inaxes", event.inaxes)
+        print("x", event.x)
+        print("y", event.y)
 
 
 app = QApplication(sys.argv)
