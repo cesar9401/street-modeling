@@ -46,6 +46,7 @@ class GraphWidget(QWidget):
         self.grid.addWidget(self.canvas, 0, 1, 9, 9)
 
         self.canvas.mpl_connect('button_press_event', self.on_press)
+        self.canvas.mpl_connect('motion_notify_event', self.on_motion)
 
         self.G = self.make_network()
 
@@ -121,18 +122,28 @@ class GraphWidget(QWidget):
         # g.add_node('node2', pos=(200, 100))
         # g.add_edge('node1', 'node2', label='A(100)')
 
-        # pos = nx.get_node_attributes(g, 'pos')
-        # nx.draw_networkx(g, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
+        pos = nx.get_node_attributes(g, 'pos')
+        nx.draw_networkx(g, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
 
-        # nx.draw_networkx_edge_labels(
-        #     g, pos=pos, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2
-        # )
+        nx.draw_networkx_edge_labels(
+            g, pos=pos, edge_labels={}, font_color='black', alpha=0.2
+        )
         plt.title('Demo')
-        plt.axis('off')
+        # plt.axis('off')
 
         return g
 
+    def on_motion(self, event):
+        print('motion event', event)
+        print("motion")
+        print("event.xdata", event.xdata)
+        print("event.ydata", event.ydata)
+        print("event.inaxes", event.inaxes)
+        print("x", event.x)
+        print("y", event.y)
+
     def on_press(self, event):
+        print('press event', event)
         print("press")
         print("event.xdata", event.xdata)
         print("event.ydata", event.ydata)
@@ -144,12 +155,13 @@ class GraphWidget(QWidget):
             return
 
         pos_x, pos_y = event.xdata, event.ydata
+        print(f'pos_x: {pos_x}, pos_y: {pos_y}')
         if not pos_x or not pos_y:
             return
 
         self.total_nodes = self.total_nodes + 1
         tmp_node = Node(f'{self.total_nodes}')  # add name
-        tmp_node.pos_x, tmp_node.pos_y = event.xdata, event.ydata  # add coordinates
+        tmp_node.pos_x, tmp_node.pos_y = pos_x, pos_y  # add coordinates
         self.nodes.append(tmp_node)
 
         # TODO: repaint
@@ -161,10 +173,11 @@ class GraphWidget(QWidget):
                 self.G.add_node(_node.label, pos=(_node.pos_x, _node.pos_y))
 
         pos = nx.get_node_attributes(self.G, 'pos')
+        print(pos)
 
         # plt.clf()
         plt.title('Demo')
-        plt.axis('off')
+        # plt.axis('off')
 
         nx.draw_networkx(self.G, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
         self.canvas.mpl_connect('button_press_event', self.on_press)
