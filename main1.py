@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QGridLayout, QVBoxLayout, QGroupBox, QPushButton, QApplication, \
     QStyleFactory
 from matplotlib import pyplot as plt
+from matplotlib.backend_tools import Cursors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from model.node import Node
@@ -25,9 +26,9 @@ class GraphWidget(QWidget):
         # canvas events
         self.canvas.mpl_connect('button_press_event', self.on_press_add_node)
         self.canvas.mpl_connect('motion_notify_event', self.on_press_move_node)
+        self.canvas.mpl_connect('button_release_event', self.on_release_button)
 
         self.adding_node = False
-        self.moving_node = False
 
         self.setGeometry(100, 100, 1000, 800)
         self.set_center()
@@ -50,12 +51,6 @@ class GraphWidget(QWidget):
         self.add_node_btn.clicked.connect(self.add_node)
         layout.addWidget(self.add_node_btn)
 
-        # move node button
-        self.move_node_btn = QPushButton('Move Node')
-        self.move_node_btn.setObjectName('move_node_btn')
-        self.move_node_btn.clicked.connect(self.move_node)
-        layout.addWidget(self.move_node_btn)
-
         # add button layout
         self.grid.addLayout(self.button_layout, 0, 0)
 
@@ -71,79 +66,61 @@ class GraphWidget(QWidget):
         self.move(qr.topLeft())
 
     def on_press_add_node(self, event):
-        pos_x, pos_y = event.xdata, event.ydata
+        self.selected_node = None  # selected node is none
+        pos_x, pos_y = event.xdata, event.ydata  # get position of the cursor
         print(f'Pos X: {pos_x}, Pos Y: {pos_y}')
 
-        self.selected_node = None
-        if self.moving_node:
+        # add nodes
+        if self.adding_node:
             if pos_x is None or pos_y is None:
                 return
 
-            for node in self.current_nodes:
-                print(node)
-                if abs(node.pos_x - pos_x) < 0.009 and abs(node.pos_y - pos_y) < 0.009:
-                    self.selected_node = node
-                    print(f'selected node: {self.selected_node}')
-                    return
+            # add node here
+            self.total_nodes += 1
+            tmp_node = Node(f'{self.total_nodes}')
+            tmp_node.pos_x = float(pos_x)
+            tmp_node.pos_y = float(pos_y)
+            self.current_nodes.append(tmp_node)
 
-            self.selected_node = None
+            self.G.add_node(tmp_node.label, pos=(tmp_node.pos_x, tmp_node.pos_y))
+            self.draw_digraph()
             return
 
-        if not self.adding_node:
-            return
-
+        # select node to move here
         if pos_x is None or pos_y is None:
             return
 
-        # add node here
-        self.total_nodes += 1
-        tmp_node = Node(f'{self.total_nodes}')
-        tmp_node.pos_x = float(pos_x)
-        tmp_node.pos_y = float(pos_y)
-        self.current_nodes.append(tmp_node)
-
-        self.G.add_node(tmp_node.label, pos=(tmp_node.pos_x, tmp_node.pos_y))
-        self.draw_digraph()
-
-        print('current nodes:')
         for node in self.current_nodes:
             print(node)
+            if abs(node.pos_x - pos_x) < 0.009 and abs(node.pos_y - pos_y) < 0.009:
+                self.selected_node = node
+                self.canvas.set_cursor(Cursors.MOVE)
+                print(f'selected node: {self.selected_node}')
+                return
+
+        self.selected_node = None
 
     def on_press_move_node(self, event):
-        if not self.moving_node:
-            return
-
-        if not self.selected_node:
-            return
-
         pos_x, pos_y = event.xdata, event.ydata
         if pos_x is None or pos_y is None:
             return
 
         if event.button == Qt.LeftButton and self.selected_node is not None:
-            print('moving node')
+            # self.canvas.set_cursor(Cursors.MOVE)
             self.selected_node.pos_x = float(pos_x)
             self.selected_node.pos_y = float(pos_y)
             self.G.remove_node(self.selected_node.label)
             self.G.add_node(self.selected_node.label, pos=(self.selected_node.pos_x, self.selected_node.pos_y))
             self.draw_digraph()
 
+    def on_release_button(self, event):
+        self.canvas.set_cursor(Cursors.POINTER)
+
     def add_node(self):
         self.adding_node = not self.adding_node
-        self.moving_node = False
-        self.update_buttons_colors()
-
-    def move_node(self):
-        self.moving_node = not self.moving_node
-        self.adding_node = False
         self.update_buttons_colors()
 
     def update_buttons_colors(self):
-        if self.moving_node:
-            self.move_node_btn.setStyleSheet("background-color: #FF5722;")
-        else:
-            self.move_node_btn.setStyleSheet("background-color: none;")
-
         if self.adding_node:
             self.add_node_btn.setStyleSheet("background-color: #FF5722;")
         else:
