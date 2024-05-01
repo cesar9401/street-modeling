@@ -61,7 +61,7 @@ class GraphWidget(QWidget):
 
         # add canvas
         self.grid.addWidget(self.canvas, 0, 1, 9, 9)
-
+        plt.autoscale(enable=False)
         plt.title('Demo IA')
 
     def set_center(self):
@@ -72,15 +72,16 @@ class GraphWidget(QWidget):
 
     def on_press_add_node(self, event):
         pos_x, pos_y = event.xdata, event.ydata
-        self.selected_node = None
         print(f'Pos X: {pos_x}, Pos Y: {pos_y}')
+
+        self.selected_node = None
         if self.moving_node:
             if pos_x is None or pos_y is None:
                 return
 
             for node in self.current_nodes:
                 print(node)
-                if abs(node.pos_x - pos_x) < 0.0005 and abs(node.pos_y - pos_y) < 0.0005:
+                if abs(node.pos_x - pos_x) < 0.009 and abs(node.pos_y - pos_y) < 0.009:
                     self.selected_node = node
                     print(f'selected node: {self.selected_node}')
                     return
@@ -152,6 +153,7 @@ class GraphWidget(QWidget):
         plt.clf()
         pos = nx.get_node_attributes(self.G, 'pos')
         nx.draw_networkx(self.G, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
+        plt.autoscale(enable=False)
         self.canvas.draw()
 
 
