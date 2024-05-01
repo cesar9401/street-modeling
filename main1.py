@@ -4,7 +4,7 @@ from typing import List
 import networkx as nx
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QGridLayout, QVBoxLayout, QGroupBox, QPushButton, QApplication, \
-    QStyleFactory
+    QStyleFactory, QComboBox, QLabel
 from matplotlib import pyplot as plt
 from matplotlib.backend_tools import Cursors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -58,11 +58,28 @@ class GraphWidget(QWidget):
         self.add_node_btn.clicked.connect(self.add_node)
         layout.addWidget(self.add_node_btn)
 
+        # remove node button
+        self.remove_node_btn = QPushButton('Remove Node')
+        self.remove_node_btn.setObjectName('remove_node_btn')
+        self.remove_node_btn.clicked.connect(self.remove_node)
+        layout.addWidget(self.remove_node_btn)
+
         # add edge button
         self.add_edge_btn = QPushButton('Add Edge')
         self.add_edge_btn.setObjectName('add_edge_btn')
         self.add_edge_btn.clicked.connect(self.add_edge)
         layout.addWidget(self.add_edge_btn)
+
+        # add edge list
+        self.edge_combo = QComboBox()
+        layout.addWidget(QLabel('Edges'))
+        layout.addWidget(self.edge_combo)
+
+        # remove edge button
+        self.remove_edge_button = QPushButton('Remove Edge')
+        self.remove_edge_button.setObjectName('remove_edge_button')
+        self.remove_edge_button.clicked.connect(self.remove_edge)
+        layout.addWidget(self.remove_edge_button)
 
         # add button layout
         self.grid.addLayout(self.button_layout, 0, 0)
@@ -96,9 +113,10 @@ class GraphWidget(QWidget):
                         self.draw_digraph()
                     elif not self.to_node and node.id != self.from_node.id:
                         self.to_node = node
-                        self.draw_digraph()
 
                         # TODO: add edge here
+                        self.draw_digraph()
+
                         new_edge = Edge(f'{self.from_node.label}-{self.to_node.label}', self.from_node, self.to_node, 0)
                         self.current_edges.append(new_edge)
 
@@ -130,7 +148,7 @@ class GraphWidget(QWidget):
             if abs(node.pos_x - pos_x) < 0.009 and abs(node.pos_y - pos_y) < 0.009:
                 self.selected_node = node
                 self.canvas.set_cursor(Cursors.MOVE)
-                print(f'selected node: {self.selected_node}')
+                self.draw_digraph()
                 return
 
         self.selected_node = None
@@ -154,10 +172,28 @@ class GraphWidget(QWidget):
         self.adding_edge = False
         self.update_buttons_colors()
 
+    def remove_node(self):
+        if not self.selected_node:
+            return
+
+        for edge in self.current_edges:
+            if (edge.from_node and edge.from_node.id == self.selected_node.id) or (edge.to_node and edge.to_node.id == self.selected_node.id):
+                return
+
+        self.current_nodes.remove(self.selected_node)  # remove node
+        self.selected_node = None
+        self.draw_digraph()  # draw, again
+
     def add_edge(self):
         self.adding_edge = not self.adding_edge
         self.adding_node = False
         self.update_buttons_colors()
+
+    def remove_edge(self):
+        index = self.edge_combo.currentIndex()
+        if index != -1 and self.current_edges[index]:
+            self.current_edges.remove(self.current_edges[index])
+            self.draw_digraph()
 
     def update_buttons_colors(self):
         if self.adding_node:
@@ -191,7 +227,9 @@ class GraphWidget(QWidget):
             else:
                 color_map.append(node.color)
 
+        self.edge_combo.clear()
         for edge in self.current_edges:
+            self.edge_combo.addItem(f'{edge.from_node.label}->{edge.to_node.label}')
             self.G.add_edge(edge.from_node.label, edge.to_node.label)
 
         pos = nx.get_node_attributes(self.G, 'pos')
