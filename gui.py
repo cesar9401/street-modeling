@@ -1,4 +1,5 @@
 import sys
+from typing import List
 
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QApplication, QStyleFactory, QWidget, QDesktopWidget, QGridLayout, QGroupBox, QVBoxLayout, \
@@ -8,11 +9,14 @@ import pandas as pd
 import networkx as nx
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
+from model.node import Node
+
 
 class GraphWidget(QWidget):
-    total_nodes = 1
     adding_node = False
     add_node_button = None
+    nodes: List[Node] = []
+    total_nodes: int = 0
 
     def __init__(self):
         super(GraphWidget, self).__init__()
@@ -91,24 +95,6 @@ class GraphWidget(QWidget):
             self.add_node_btn.setStyleSheet("background-color: none;")
 
         # print('Submitted command', self.sender().objectName())
-        # self.figure = plt.figure()
-        # self.canvas = FigureCanvas(self.figure)
-        #
-        # self.grid.addWidget(self.canvas, 0, 1, 9, 9)
-        #
-        # self.G.add_node('node3', pos=(200, 300))
-        #
-        # pos = nx.get_node_attributes(self.G, 'pos')
-        #
-        # # plt.clf()
-        # plt.title('Demo')
-        # plt.axis('off')
-        #
-        # nx.draw_networkx(self.G, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
-        #
-        # nx.draw_networkx_edge_labels(
-        #     self.G, pos=pos, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2
-        # )
 
     def add_edge(self):
         self.figure = plt.figure()
@@ -131,32 +117,68 @@ class GraphWidget(QWidget):
 
     def make_network(self):
         g = nx.DiGraph()
-        g.add_node('node1', pos=(100, 100))
-        g.add_node('node2', pos=(200, 100))
-        g.add_edge('node1', 'node2', label='A(100)')
+        # g.add_node('node1', pos=(100, 100))
+        # g.add_node('node2', pos=(200, 100))
+        # g.add_edge('node1', 'node2', label='A(100)')
 
-        pos = nx.get_node_attributes(g, 'pos')
-        nx.draw_networkx(g, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
+        # pos = nx.get_node_attributes(g, 'pos')
+        # nx.draw_networkx(g, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
 
-        nx.draw_networkx_edge_labels(
-            g, pos=pos, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2
-        )
+        # nx.draw_networkx_edge_labels(
+        #     g, pos=pos, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2
+        # )
         plt.title('Demo')
         plt.axis('off')
 
         return g
 
     def on_press(self, event):
-        if not self.adding_node:
-            return
-
-        # TODO: add the node here
         print("press")
         print("event.xdata", event.xdata)
         print("event.ydata", event.ydata)
         print("event.inaxes", event.inaxes)
         print("x", event.x)
         print("y", event.y)
+
+        if not self.adding_node:
+            return
+
+        pos_x, pos_y = event.xdata, event.ydata
+        if not pos_x or not pos_y:
+            return
+
+        self.total_nodes = self.total_nodes + 1
+        tmp_node = Node(f'{self.total_nodes}')  # add name
+        tmp_node.pos_x, tmp_node.pos_y = event.xdata, event.ydata  # add coordinates
+        self.nodes.append(tmp_node)
+
+        # TODO: repaint
+        self.canvas = FigureCanvas(self.figure)
+        self.grid.addWidget(self.canvas, 0, 1, 9, 9)
+        print(self.G.nodes)
+        for _node in self.nodes:
+            if _node.label not in self.G.nodes:
+                self.G.add_node(_node.label, pos=(_node.pos_x, _node.pos_y))
+
+        pos = nx.get_node_attributes(self.G, 'pos')
+
+        # plt.clf()
+        plt.title('Demo')
+        plt.axis('off')
+
+        nx.draw_networkx(self.G, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color='c', with_labels=True)
+        self.canvas.mpl_connect('button_press_event', self.on_press)
+
+        # nx.draw_networkx_edge_labels(
+        #     self.G, pos=pos, edge_labels={('node1', 'node2'): 'A(100)'}, font_color='black', alpha=0.2
+        # )
+
+    def repaint(self):
+        self.figure = plt.figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.grid.addWidget(self.canvas, 0, 1, 9, 9)
+
+        # TODO: add nodes here
 
 
 app = QApplication(sys.argv)
