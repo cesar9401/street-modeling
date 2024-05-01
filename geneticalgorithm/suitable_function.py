@@ -49,4 +49,8 @@ def calculate_fitness(ind: Individual) -> float:
     if len(sum_of_in_values) or len(sum_of_out_values) or not total_out_percentage:
         return 0
 
-    return (total_cars_out / total_cars_in) * (total_cars_out / sum(max_cars_in.values()))
+    sum_max_cars_in = max(max_cars_in.values())
+    if not total_cars_in or not sum_max_cars_in:
+        return 0
+
+    return (total_cars_out / total_cars_in) * (total_cars_out / sum_max_cars_in)

@@ -8,7 +8,7 @@ from model.edge_connection import EdgeConnection
 from geneticalgorithm import random_population, suitable_function, individual, reproducer, random_util, mutator
 
 POPULATION_SIZE: int = 100
-MUTATION_PROBABLY: int = 25
+MUTATION_PROBABLY: int = 50
 TOTAL_GENERATIONS: int = 100
 
 # dot = graphviz.Digraph(comment='Sample')
