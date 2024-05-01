@@ -11,8 +11,8 @@ class Node:
         self.label: str = label
         self.in_edges: List[edge.Edge] = []
         self.out_edges: List[edge.Edge] = []
-        self.pos_x: int = 0
-        self.pos_y: int = 0
+        self.pos_x: float = 0
+        self.pos_y: float = 0
 
     def __str__(self):
-        return f'{self.id}: {self.label}'
+        return f'{self.id}: {self.label}, pos_x: {self.pos_x}, pos_y: {self.pos_y}'
