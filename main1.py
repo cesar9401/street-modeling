@@ -22,7 +22,7 @@ class GraphWidget(QWidget):
         self.selected_node_color: str = '#FF5621'
 
         self.G = nx.DiGraph()
-        self.figure = plt.figure()
+        self.figure = plt.figure(figsize=(10, 10), dpi=80)
         self.canvas = FigureCanvas(self.figure)
 
         self.selected_node: Node | None = None  # node to move
@@ -213,7 +213,9 @@ class GraphWidget(QWidget):
 
     def draw_digraph(self):
         plt.clf()
+        plt.autoscale(enable=False)
         self.G.clear()
+
         color_map: List[str] = []
 
         for node in self.current_nodes:
@@ -235,7 +237,6 @@ class GraphWidget(QWidget):
         pos = nx.get_node_attributes(self.G, 'pos')
         nx.draw_networkx(self.G, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color=color_map,
                          with_labels=True)
-        plt.autoscale(enable=False)
         self.canvas.draw()
 
 
