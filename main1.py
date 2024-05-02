@@ -4,13 +4,91 @@ from typing import List
 import networkx as nx
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QGridLayout, QVBoxLayout, QGroupBox, QPushButton, QApplication, \
-    QStyleFactory, QComboBox, QLabel
+    QStyleFactory, QComboBox, QLabel, QDialog, QSpinBox
 from matplotlib import pyplot as plt
 from matplotlib.backend_tools import Cursors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from model.edge import Edge
 from model.node import Node
+
+
+class EdgeDialog(QDialog):
+    def __init__(self, current_nodes: List[Node], from_node: Node, to_node: Node, cur_edge: Edge | None):
+        super().__init__()
+        self.current_nodes: List[Node] = current_nodes
+        self.cur_edge: Edge | None = cur_edge
+        self.from_node: Node = from_node
+        self.to_node: Node = to_node
+
+        self.setWindowTitle('Add edge')
+        self.setGeometry(100, 100, 300, 300)
+        general_layout = QVBoxLayout()
+
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignTop)
+        layout.setSpacing(10)
+
+        # from
+        self.combo1 = QComboBox()
+        self.combo1.addItems(map(lambda x: x.label, current_nodes))
+        layout.addWidget(QLabel('Node from'))
+        layout.addWidget(self.combo1)
+        if from_node:
+            self.combo1.setCurrentIndex(self.combo1.findText(from_node.label))
+
+        # to
+        self.combo2 = QComboBox()
+        self.combo2.addItems(map(lambda x: x.label, current_nodes))
+        layout.addWidget(QLabel('Node to'))
+        layout.addWidget(self.combo2)
+        if to_node:
+            self.combo2.setCurrentIndex(self.combo2.findText(to_node.label))
+
+        # capacity
+        self.capacity = QSpinBox()
+        self.capacity.setRange(0, 100)
+        layout.addWidget(QLabel("Max capacity"))
+        layout.addWidget(self.capacity)
+        if cur_edge:
+            self.capacity.setValue(cur_edge.capacity)
+
+        general_layout.addLayout(layout)
+
+        # btn
+        save_btn = QPushButton('Save')
+        save_btn.setObjectName("save_btn")
+        save_btn.clicked.connect(self.on_save_btn_clicked)
+        general_layout.addWidget(save_btn)
+        self.setLayout(general_layout)
+
+        # set center
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+    def on_save_btn_clicked(self):
+        from_node: Node = next(item for item in self.current_nodes if item.label == self.combo1.currentText())
+        to_node: Node = next(item for item in self.current_nodes if item.label == self.combo2.currentText())
+        capacity: int = self.capacity.value()
+
+        if not from_node or not to_node or capacity is None:
+            return
+
+        if from_node.id == to_node.id:
+            return
+
+        label = f'{from_node.label}->{to_node.label}'
+        if not self.cur_edge:
+            self.cur_edge = Edge(label, from_node, to_node, capacity)
+        else:
+            self.cur_edge.label = label
+            self.cur_edge.from_node = from_node
+            self.cur_edge.to_node = to_node
+            self.capacity = self.capacity.value()
+
+        self.close()
 
 
 class GraphWidget(QWidget):
@@ -87,6 +165,7 @@ class GraphWidget(QWidget):
         # add canvas
         self.grid.addWidget(self.canvas, 0, 1, 9, 9)
         plt.autoscale(enable=False)
+        plt.axis('on')
         plt.title('Demo IA')
 
     def set_center(self):
@@ -98,14 +177,13 @@ class GraphWidget(QWidget):
     def on_press_add_node(self, event):
         self.selected_node = None  # selected node is none
         pos_x, pos_y = event.xdata, event.ydata  # get position of the cursor
-        print(f'Pos X: {pos_x}, Pos Y: {pos_y}')
 
         if pos_x is None or pos_y is None:
             return
 
         # add edge
         if self.adding_edge:
-            # TODO: select node here
+            # select node here
             for node in self.current_nodes:
                 if abs(node.pos_x - pos_x) < 0.009 and abs(node.pos_y - pos_y) < 0.009:
                     if not self.from_node:
@@ -113,13 +191,11 @@ class GraphWidget(QWidget):
                         self.draw_digraph()
                     elif not self.to_node and node.id != self.from_node.id:
                         self.to_node = node
-
-                        # TODO: add edge here
                         self.draw_digraph()
 
-                        new_edge = Edge(f'{self.from_node.label}-{self.to_node.label}', self.from_node, self.to_node, 0)
+                        # TODO: add edge info here
+                        new_edge = self.edit_edge_action()
                         self.current_edges.append(new_edge)
-
                         self.from_node = None
                         self.to_node = None
                         self.draw_digraph()
@@ -144,7 +220,6 @@ class GraphWidget(QWidget):
             return
 
         for node in self.current_nodes:
-            print(node)
             if abs(node.pos_x - pos_x) < 0.009 and abs(node.pos_y - pos_y) < 0.009:
                 self.selected_node = node
                 self.canvas.set_cursor(Cursors.MOVE)
@@ -177,7 +252,8 @@ class GraphWidget(QWidget):
             return
 
         for edge in self.current_edges:
-            if (edge.from_node and edge.from_node.id == self.selected_node.id) or (edge.to_node and edge.to_node.id == self.selected_node.id):
+            if (edge.from_node and edge.from_node.id == self.selected_node.id) or (
+                    edge.to_node and edge.to_node.id == self.selected_node.id):
                 return
 
         self.current_nodes.remove(self.selected_node)  # remove node
@@ -211,8 +287,15 @@ class GraphWidget(QWidget):
             self.to_node = None
             self.draw_digraph()
 
+    def edit_edge_action(self) -> Edge:
+        edit_dialog = EdgeDialog(self.current_nodes, self.from_node, self.to_node, None)
+        edit_dialog.exec()
+        return edit_dialog.cur_edge
+
     def draw_digraph(self):
         plt.clf()
+        plt.title('Demo IA')
+        plt.axis('on')
         plt.autoscale(enable=False)
         self.G.clear()
 
