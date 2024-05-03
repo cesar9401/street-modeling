@@ -47,7 +47,7 @@ class EdgeDialog(QDialog):
 
         # capacity
         self.capacity = QSpinBox()
-        self.capacity.setRange(0, 100)
+        self.capacity.setRange(0, 2147483647)
         layout.addWidget(QLabel("Max capacity"))
         layout.addWidget(self.capacity)
         if cur_edge:
@@ -86,8 +86,9 @@ class EdgeDialog(QDialog):
             self.cur_edge.label = label
             self.cur_edge.from_node = from_node
             self.cur_edge.to_node = to_node
-            self.capacity = self.capacity.value()
+            self.cur_edge.capacity = self.capacity.value()
 
+        print(f'edge: {self.cur_edge}, capacity: {self.cur_edge.capacity}')
         self.close()
 
 
@@ -153,6 +154,12 @@ class GraphWidget(QWidget):
         layout.addWidget(QLabel('Edges'))
         layout.addWidget(self.edge_combo)
 
+        # edit edge button
+        self.edit_edge_button = QPushButton('Edit Edge')
+        self.edit_edge_button.setObjectName('edit_edge_button')
+        self.edit_edge_button.clicked.connect(self.edit_edge)
+        layout.addWidget(self.edit_edge_button)
+
         # remove edge button
         self.remove_edge_button = QPushButton('Remove Edge')
         self.remove_edge_button.setObjectName('remove_edge_button')
@@ -193,7 +200,7 @@ class GraphWidget(QWidget):
                         self.to_node = node
                         self.draw_digraph()
 
-                        # TODO: add edge info here
+                        # adding edge info here
                         new_edge = self.edit_edge_action()
                         self.current_edges.append(new_edge)
                         self.from_node = None
@@ -211,7 +218,6 @@ class GraphWidget(QWidget):
             tmp_node.pos_y = float(pos_y)
             self.current_nodes.append(tmp_node)
 
-            # self.G.add_node(tmp_node.label, pos=(tmp_node.pos_x, tmp_node.pos_y))
             self.draw_digraph()
             return
 
@@ -265,10 +271,24 @@ class GraphWidget(QWidget):
         self.adding_node = False
         self.update_buttons_colors()
 
+    # to remove any edge
     def remove_edge(self):
         index = self.edge_combo.currentIndex()
         if index != -1 and self.current_edges[index]:
             self.current_edges.remove(self.current_edges[index])
+            self.draw_digraph()
+
+    # to edit any edge
+    def edit_edge(self):
+        index = self.edge_combo.currentIndex()
+        if index != -1 and self.current_edges[index]:
+            cur_edge = self.current_edges[index]
+            self.current_edges.remove(cur_edge)
+
+            edit_dialog = EdgeDialog(self.current_nodes, cur_edge.from_node, cur_edge.to_node, cur_edge)
+            edit_dialog.exec()
+            new_edge = edit_dialog.cur_edge
+            self.current_edges.append(new_edge)
             self.draw_digraph()
 
     def update_buttons_colors(self):
@@ -313,13 +333,20 @@ class GraphWidget(QWidget):
                 color_map.append(node.color)
 
         self.edge_combo.clear()
+        edge_labels = {}
         for edge in self.current_edges:
+            # combo to list edges
             self.edge_combo.addItem(f'{edge.from_node.label}->{edge.to_node.label}')
-            self.G.add_edge(edge.from_node.label, edge.to_node.label)
+            self.G.add_edge(edge.from_node.label, edge.to_node.label)  # add edge to networkx
+            edge_labels[(edge.from_node.label,
+                         edge.to_node.label)] = f'{edge.from_node.label}{edge.to_node.label} ({edge.capacity})'
 
         pos = nx.get_node_attributes(self.G, 'pos')
-        nx.draw_networkx(self.G, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color=color_map,
-                         with_labels=True)
+        nx.draw_networkx(
+            self.G, pos=pos, arrows=True, node_size=2500, alpha=0.85, node_color=color_map,
+            with_labels=True
+        )
+        nx.draw_networkx_edge_labels(self.G, pos=pos, edge_labels=edge_labels)
         self.canvas.draw()
 
 
