@@ -1,10 +1,11 @@
+import math
 import sys
 from typing import List
 
 import networkx as nx
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QGridLayout, QVBoxLayout, QGroupBox, QPushButton, QApplication, \
-    QStyleFactory, QComboBox, QLabel, QDialog, QSpinBox
+    QStyleFactory, QComboBox, QLabel, QDialog, QSpinBox, QHBoxLayout, QDoubleSpinBox, QSpacerItem, QSizePolicy
 from matplotlib import pyplot as plt
 from matplotlib.backend_tools import Cursors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -101,6 +102,11 @@ class GraphWidget(QWidget):
         self.in_out_nodes: List[Node] = []  # to help to represent edges to enter or exit the whole system
         self.current_edges: List[Edge] = []
         self.selected_node_color: str = '#FF5621'
+        self.population_size: int = 100
+        self.mutations_quantity: int = 1
+        self.mutations_generations_quantity: int = 1
+        self.completion_criteria_items = ['Number of generations', 'Efficiency percentage']
+        self.completion_criteria_value = 100
 
         self.G = nx.DiGraph()
         self.figure = plt.figure(figsize=(10, 10), dpi=80)
@@ -119,7 +125,7 @@ class GraphWidget(QWidget):
         self.adding_node = False
         self.adding_edge = False
 
-        self.setGeometry(100, 100, 1000, 800)
+        self.setGeometry(100, 100, 1100, 800)
         self.set_center()
         self.setWindowTitle("IA")
         self.grid = QGridLayout()
@@ -174,6 +180,44 @@ class GraphWidget(QWidget):
         self.remove_edge_button.setObjectName('remove_edge_button')
         self.remove_edge_button.clicked.connect(self.remove_edge)
         layout.addWidget(self.remove_edge_button)
+
+        # about the algorithm
+        layout.addSpacerItem(QSpacerItem(0, 150, QSizePolicy.Minimum, QSizePolicy.Minimum))
+        layout.addWidget(QLabel("About the algorithm"))
+
+        # size population here
+        self.population_size_spin = QSpinBox()
+        self.population_size_spin.setRange(1, 2147483647)
+        self.population_size_spin.setValue(self.population_size)
+        layout.addWidget(QLabel('Size population'))
+        layout.addWidget(self.population_size_spin)
+
+        # mutations per population
+        layout.addWidget(QLabel('X mutations / Y generations'))
+        horizontal_layout = QHBoxLayout()
+
+        self.mutations_quantity_spin = QSpinBox()
+        self.mutations_quantity_spin.setRange(0, 2147483647)
+        self.mutations_quantity_spin.setValue(self.mutations_quantity)
+
+        self.mutations_generations_quantity_spin = QSpinBox()
+        self.mutations_generations_quantity_spin.setRange(1, 2147483647)
+        self.mutations_generations_quantity_spin.setValue(self.mutations_generations_quantity)
+
+        horizontal_layout.addWidget(self.mutations_quantity_spin)
+        horizontal_layout.addWidget(self.mutations_generations_quantity_spin)
+        layout.addLayout(horizontal_layout)
+
+        # completion criteria
+        self.completion_criteria_combo = QComboBox()
+        self.completion_criteria_combo.addItems(self.completion_criteria_items)
+        layout.addWidget(QLabel('Completion criteria'))
+        layout.addWidget(self.completion_criteria_combo)
+
+        self.completion_criteria_spin = QDoubleSpinBox()
+        self.completion_criteria_spin.setRange(1, 2147483647)
+        self.completion_criteria_spin.setValue(self.completion_criteria_value)
+        layout.addWidget(self.completion_criteria_spin)
 
         # start algorithm button
         self.start_algorithm_btn = QPushButton("Start")
@@ -390,7 +434,22 @@ class GraphWidget(QWidget):
 
     def start_algorithm(self):
         print('Starting algorithm')
-        algorithm = GeneticAlgorithm(self.current_nodes, self.current_edges)
+        self.population_size = int(self.population_size_spin.value())
+        self.mutations_quantity = int(self.mutations_quantity_spin.value())
+        self.mutations_generations_quantity = int(self.mutations_generations_quantity_spin.value())
+        self.completion_criteria_value = float(self.completion_criteria_spin.value())
+        completion_by_generations = self.completion_criteria_combo.currentText() == 'Number of generations'
+        if completion_by_generations:
+            self.completion_criteria_value = math.floor(self.completion_criteria_value)
+
+        algorithm = GeneticAlgorithm(
+            self.population_size,
+            self.mutations_quantity,
+            self.mutations_generations_quantity,
+            completion_by_generations,
+            self.completion_criteria_value,
+            self.current_nodes, self.current_edges
+        )
         best = algorithm.get_best_fitness()
 
 

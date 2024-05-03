@@ -8,8 +8,20 @@ from geneticalgorithm import random_population, suitable_function, individual, r
 
 class GeneticAlgorithm:
 
-    def __init__(self, nodes: List[Node], edges: List[Edge]):
-        self.population_size: int = 100
+    def __init__(
+            self,
+            population_size: int,
+            mutations_quantity: int,
+            mutations_generations_quantity: int,
+            completion_by_generations: bool,
+            completion_criteria_value: float,
+            nodes: List[Node], edges: List[Edge]
+    ):
+        self.population_size: int = population_size
+        self.mutations_quantity: int = mutations_quantity
+        self.mutations_generations_quantity: int = mutations_generations_quantity
+        self.completion_by_generations: bool = completion_by_generations
+        self.completion_criteria_value: float = completion_criteria_value
         self.mutation_probably: int = 50
         self.total_generations: int = 100
         self.nodes = nodes
