@@ -80,6 +80,3 @@ def get_best_fitness() -> individual.Individual | None:
     print(f'Total mutations: {total_mutations}')
     print(f'{best.get_population_info()}, fitness: {best.fitness}')
     return best
-
-
-best_fitness = get_best_fitness()

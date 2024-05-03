@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from matplotlib.backend_tools import Cursors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
+from geneticalgorithm.genetic_algorithm import GeneticAlgorithm
 from model.edge import Edge
 from model.node import Node
 
@@ -173,6 +174,12 @@ class GraphWidget(QWidget):
         self.remove_edge_button.setObjectName('remove_edge_button')
         self.remove_edge_button.clicked.connect(self.remove_edge)
         layout.addWidget(self.remove_edge_button)
+
+        # start algorithm button
+        self.start_algorithm_btn = QPushButton("Start")
+        self.start_algorithm_btn.setObjectName('start_algorithm')
+        self.start_algorithm_btn.clicked.connect(self.start_algorithm)
+        layout.addWidget(self.start_algorithm_btn)
 
         # add button layout
         self.grid.addLayout(self.button_layout, 0, 0)
@@ -381,12 +388,15 @@ class GraphWidget(QWidget):
         nx.draw_networkx_edge_labels(self.G, pos=pos, edge_labels=edge_labels)
         self.canvas.draw()
 
+    def start_algorithm(self):
+        print('Starting algorithm')
+        algorithm = GeneticAlgorithm(self.current_nodes, self.current_edges)
+        best = algorithm.get_best_fitness()
+
 
 app = QApplication(sys.argv)
 app.aboutToQuit.connect(app.deleteLater)
 app.setStyle(QStyleFactory.create("gtk"))
-
 window = GraphWidget()
 window.show()
-
 sys.exit(app.exec_())

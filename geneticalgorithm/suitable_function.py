@@ -31,12 +31,12 @@ def calculate_fitness(ind: Individual) -> float:
             edge_cars_quantity[out_edge.id] = 0
         edge_cars_quantity[out_edge.id] += cars_in
 
-        if not in_edge.from_node:
+        if not in_edge.from_node or in_edge.from_node.in_or_out:  # not node or aux node
             edge_cars_quantity[out_edge.id] = cars_in
             total_cars_in += cars_in
             if in_edge.id not in max_cars_in:
                 max_cars_in[in_edge.id] = in_edge.capacity
-        if not out_edge.to_node:
+        if not out_edge.to_node or out_edge.to_node.in_or_out:  # not node or aux node
             total_out_percentage += gen.current_percentage
             # total number of vehicles leaving
             total_cars_out += cars_in
