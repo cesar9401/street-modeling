@@ -208,8 +208,12 @@ class GraphWidget(QWidget):
                         self.to_node = node
                         self.draw_digraph()
 
+                        # not allow when both nodes are aux nodes
                         if self.from_node.in_or_out and self.to_node.in_or_out:
-                            # TODO: not allow
+                            self.from_node = None
+                            self.to_node = None
+                            self.draw_digraph()
+                            return
 
                         # adding edge info here
                         new_edge = self.edit_edge_action()
