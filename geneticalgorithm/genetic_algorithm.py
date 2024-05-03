@@ -14,7 +14,11 @@ class GeneticAlgorithm:
         self.total_generations: int = 100
         self.nodes = nodes
         self.edges = edges
+
         self.connections: List[EdgeConnection] = []
+        for node in self.nodes:
+            node.in_edges = []
+            node.out_edges = []
 
         # TODO: check nodes and edges
         for edge in self.edges:
