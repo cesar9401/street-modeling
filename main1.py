@@ -97,6 +97,7 @@ class GraphWidget(QWidget):
         super().__init__()
         self.total_nodes: int = 0
         self.current_nodes: List[Node] = []
+        self.in_out_nodes: List[Node] = []  # to help to represent edges to enter or exit the whole system
         self.current_edges: List[Edge] = []
         self.selected_node_color: str = '#FF5621'
 
@@ -113,6 +114,7 @@ class GraphWidget(QWidget):
         self.canvas.mpl_connect('motion_notify_event', self.on_press_move_node)
         self.canvas.mpl_connect('button_release_event', self.on_release_button)
 
+        self.adding_aux_node = False
         self.adding_node = False
         self.adding_edge = False
 
@@ -130,6 +132,12 @@ class GraphWidget(QWidget):
         layout = QVBoxLayout()
         layout.setSpacing(10)
         vertical_group_box.setLayout(layout)
+
+        # add aux node button here
+        self.add_aux_node_btn = QPushButton('Aux Node')
+        self.add_aux_node_btn.setObjectName('add_aux_node_button')
+        self.add_aux_node_btn.clicked.connect(self.add_aux_node)
+        layout.addWidget(self.add_aux_node_btn)
 
         # add node button
         self.add_node_btn = QPushButton('Add Node')
@@ -200,6 +208,9 @@ class GraphWidget(QWidget):
                         self.to_node = node
                         self.draw_digraph()
 
+                        if self.from_node.in_or_out and self.to_node.in_or_out:
+                            # TODO: not allow
+
                         # adding edge info here
                         new_edge = self.edit_edge_action()
                         self.current_edges.append(new_edge)
@@ -210,14 +221,18 @@ class GraphWidget(QWidget):
             return
 
         # add nodes
-        if self.adding_node:
+        if self.adding_node or self.adding_aux_node:
             # add node here
             self.total_nodes += 1
             tmp_node = Node(f'{self.total_nodes}')
             tmp_node.pos_x = float(pos_x)
             tmp_node.pos_y = float(pos_y)
-            self.current_nodes.append(tmp_node)
 
+            if self.adding_aux_node:
+                tmp_node.in_or_out = True
+                tmp_node.color = '#FDFEFE'
+
+            self.current_nodes.append(tmp_node)
             self.draw_digraph()
             return
 
@@ -248,8 +263,15 @@ class GraphWidget(QWidget):
     def on_release_button(self, event):
         self.canvas.set_cursor(Cursors.POINTER)
 
+    def add_aux_node(self):
+        self.adding_aux_node = not self.adding_aux_node
+        self.adding_node = False
+        self.adding_edge = False
+        self.update_buttons_colors()
+
     def add_node(self):
         self.adding_node = not self.adding_node
+        self.adding_aux_node = False
         self.adding_edge = False
         self.update_buttons_colors()
 
@@ -268,6 +290,7 @@ class GraphWidget(QWidget):
 
     def add_edge(self):
         self.adding_edge = not self.adding_edge
+        self.adding_aux_node = False
         self.adding_node = False
         self.update_buttons_colors()
 
@@ -301,6 +324,11 @@ class GraphWidget(QWidget):
             self.add_edge_btn.setStyleSheet("background-color: #FF5722;")
         else:
             self.add_edge_btn.setStyleSheet("background-color: none;")
+
+        if self.adding_aux_node:
+            self.add_aux_node_btn.setStyleSheet("background-color: #FF5722;")
+        else:
+            self.add_aux_node_btn.setStyleSheet("background-color: none;")
 
         if not self.adding_edge:
             self.from_node = None

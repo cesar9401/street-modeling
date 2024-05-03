@@ -14,6 +14,7 @@ class Node:
         self.pos_x: float = 0
         self.pos_y: float = 0
         self.color: str = '#3498DB'
+        self.in_or_out: bool = False
 
     def __str__(self):
         return f'{self.id}: {self.label}, pos_x: {self.pos_x}, pos_y: {self.pos_y}'
