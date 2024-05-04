@@ -95,4 +95,7 @@ class GeneticAlgorithm:
         print(f'Total generations: {total_generations}')
         print(f'Total mutations: {total_mutations}')
         print(f'{best.get_population_info()}, fitness: {best.fitness}')
+
+        print('best:')
+        suitable_function.calculate_fitness(best, True)
         return best

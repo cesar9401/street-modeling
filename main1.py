@@ -99,7 +99,6 @@ class GraphWidget(QWidget):
         super().__init__()
         self.total_nodes: int = 0
         self.current_nodes: List[Node] = []
-        self.in_out_nodes: List[Node] = []  # to help to represent edges to enter or exit the whole system
         self.current_edges: List[Edge] = []
         self.selected_node_color: str = '#FF5621'
         self.population_size: int = 100
@@ -180,6 +179,12 @@ class GraphWidget(QWidget):
         self.remove_edge_button.setObjectName('remove_edge_button')
         self.remove_edge_button.clicked.connect(self.remove_edge)
         layout.addWidget(self.remove_edge_button)
+
+        # reset button
+        self.reset_btn = QPushButton("Reset")
+        self.reset_btn.setObjectName("reset_button")
+        self.reset_btn.clicked.connect(self.reset_action)
+        layout.addWidget(self.reset_btn)
 
         # about the algorithm
         layout.addSpacerItem(QSpacerItem(0, 150, QSizePolicy.Minimum, QSizePolicy.Minimum))
@@ -368,6 +373,15 @@ class GraphWidget(QWidget):
             new_edge = edit_dialog.cur_edge
             self.current_edges.append(new_edge)
             self.draw_digraph()
+
+    def reset_action(self):
+        self.total_nodes = 0
+        self.current_nodes = []
+        self.current_edges = []
+        self.selected_node = None
+        self.from_node = None
+        self.to_node = None
+        self.draw_digraph()
 
     def update_buttons_colors(self):
         if self.adding_node:

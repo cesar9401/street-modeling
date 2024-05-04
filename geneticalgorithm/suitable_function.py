@@ -3,11 +3,13 @@ import math
 from geneticalgorithm.individual import Individual
 
 
-def calculate_fitness(ind: Individual) -> float:
+def calculate_fitness(ind: Individual, printing: bool = False) -> float:
     # to check if the sum of percentages is not greater than 100%
     in_percentage, out_percentage = {}, {}
     total_out_percentage, total_cars_in, total_cars_out = 0, 0, 0
     edge_cars_quantity, max_cars_in = {}, {}
+
+    total_paths_in, total_paths_out = 0, 0
 
     gens = ind.gens
     for gen in gens:
@@ -26,20 +28,23 @@ def calculate_fitness(ind: Individual) -> float:
         if in_edge.id in edge_cars_quantity:
             # minimum of cars that could enter and cars in the enter edge
             cars_in = min(cars_in, edge_cars_quantity.get(in_edge.id))
+            cars_in = min(cars_in, out_edge.capacity)
 
         if out_edge.id not in edge_cars_quantity:
             edge_cars_quantity[out_edge.id] = 0
         edge_cars_quantity[out_edge.id] += cars_in
 
-        if not in_edge.from_node or in_edge.from_node.in_or_out:  # not node or aux node
+        if in_edge.from_node.in_or_out:  # not node or aux node
             edge_cars_quantity[out_edge.id] = cars_in
             total_cars_in += cars_in
+            total_paths_in += 1
             if in_edge.id not in max_cars_in:
                 max_cars_in[in_edge.id] = in_edge.capacity
-        if not out_edge.to_node or out_edge.to_node.in_or_out:  # not node or aux node
+        if out_edge.to_node.in_or_out:  # not node or aux node
             total_out_percentage += gen.current_percentage
             # total number of vehicles leaving
             total_cars_out += cars_in
+            total_paths_out += 1
 
     # more than 100%
     sum_of_in_values = [x for x in list(in_percentage.values()) if x > 100]
@@ -53,4 +58,13 @@ def calculate_fitness(ind: Individual) -> float:
     if not total_cars_in or not sum_max_cars_in:
         return 0
 
-    return ((total_cars_out / total_cars_in) * (total_cars_out / sum_max_cars_in)) * 100
+    fitness = (((total_cars_out / total_paths_out) / (total_cars_in / total_paths_in)) * (
+                total_cars_out / sum_max_cars_in)) * 100
+    if printing:
+        print(f'total_cars_out: {total_cars_out}')
+        print(f'total_cars_in: {total_cars_in}')
+        print(f'sum_max_cars_in: {sum_max_cars_in}')
+        print(
+            f'\n fitness: (({total_cars_out} / {total_paths_out}) / ({total_cars_in} / {total_paths_in})) * ({total_cars_out} / {sum_max_cars_in}) * 100 = {fitness}')
+
+    return fitness
