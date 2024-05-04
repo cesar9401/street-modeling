@@ -53,4 +53,4 @@ def calculate_fitness(ind: Individual) -> float:
     if not total_cars_in or not sum_max_cars_in:
         return 0
 
-    return (total_cars_out / total_cars_in) * (total_cars_out / sum_max_cars_in)
+    return ((total_cars_out / total_cars_in) * (total_cars_out / sum_max_cars_in)) * 100

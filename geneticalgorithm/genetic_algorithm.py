@@ -22,10 +22,12 @@ class GeneticAlgorithm:
         self.mutations_generations_quantity: int = mutations_generations_quantity
         self.completion_by_generations: bool = completion_by_generations
         self.completion_criteria_value: float = completion_criteria_value
-        self.mutation_probably: int = 50
-        self.total_generations: int = 100
         self.nodes = nodes
         self.edges = edges
+
+        self.mutation_probably: float = (
+                (self.mutations_quantity * 100) / (self.mutations_generations_quantity * self.population_size)
+        )
 
         self.connections: List[EdgeConnection] = []
         for node in self.nodes:
@@ -65,7 +67,11 @@ class GeneticAlgorithm:
         )
 
         best = population[0]
-        while total_generations < self.total_generations:
+
+        while total_generations < self.completion_criteria_value \
+                if self.completion_by_generations \
+                else best.fitness < self.completion_criteria_value:
+
             for ind in population:
                 if best.fitness < ind.fitness:
                     best = ind
@@ -86,6 +92,7 @@ class GeneticAlgorithm:
 
             population = new_population
 
+        print(f'Total generations: {total_generations}')
         print(f'Total mutations: {total_mutations}')
         print(f'{best.get_population_info()}, fitness: {best.fitness}')
         return best
