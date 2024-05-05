@@ -58,13 +58,15 @@ def calculate_fitness(ind: Individual, printing: bool = False) -> float:
     if not total_cars_in or not sum_max_cars_in:
         return 0
 
-    fitness = (((total_cars_out / total_paths_out) / (total_cars_in / total_paths_in)) * (
-                total_cars_out / sum_max_cars_in)) * 100
+    total_out = total_cars_out / total_paths_out
+    total_in = total_cars_in / total_paths_in
+    total_out_percentage = min(1.00, total_cars_out / sum_max_cars_in)
+    fitness = (total_out / total_in) * total_out_percentage * 100
+
     if printing:
-        print(f'total_cars_out: {total_cars_out}')
-        print(f'total_cars_in: {total_cars_in}')
-        print(f'sum_max_cars_in: {sum_max_cars_in}')
-        print(
-            f'\n fitness: (({total_cars_out} / {total_paths_out}) / ({total_cars_in} / {total_paths_in})) * ({total_cars_out} / {sum_max_cars_in}) * 100 = {fitness}')
+        print(f'total_out = total_cars_out / total_paths_out = {total_out} = {total_cars_out} / {total_paths_out}')
+        print(f'total_in = total_cars_in / total_paths_in = {total_in} = {total_cars_in} / {total_paths_in}')
+        print(f'used_percentage = min(1.00, total_cars_in / max_cars_in) = {total_out_percentage} = min(1.00, {total_cars_out} / {sum_max_cars_in})')
+        print(f'fitness = {fitness} = {total_out} / {total_in} * {total_out_percentage} * 100')
 
     return fitness
