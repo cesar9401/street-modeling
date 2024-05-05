@@ -1,3 +1,4 @@
+import threading
 from typing import List
 
 from model.edge import Edge
@@ -24,6 +25,9 @@ class GeneticAlgorithm:
         self.completion_criteria_value: float = completion_criteria_value
         self.nodes = nodes
         self.edges = edges
+        self.stop = False
+
+        self.best: individual.Individual | None = None
 
         self.mutation_probably: float = (
                 (self.mutations_quantity * 100) / (self.mutations_generations_quantity * self.population_size)
@@ -33,7 +37,7 @@ class GeneticAlgorithm:
         for node in self.nodes:
             node.clean_node()
 
-        # TODO: check nodes and edges
+        # check nodes and edges
         for edge in self.edges:
             tmp_from_node = edge.from_node
             tmp_to_node = edge.to_node
@@ -65,15 +69,19 @@ class GeneticAlgorithm:
             self.population_size, self.connections, suitable_function.calculate_fitness
         )
 
-        best = population[0]
+        self.best = population[0]
 
         while total_generations < self.completion_criteria_value \
                 if self.completion_by_generations \
-                else best.fitness < self.completion_criteria_value:
+                else self.best.fitness < self.completion_criteria_value:
+
+            if self.stop:
+                print(f'stopping at generation: {total_generations}')
+                return self.best
 
             for ind in population:
-                if best.fitness < ind.fitness:
-                    best = ind
+                if self.best.fitness < ind.fitness:
+                    self.best = ind
 
             total_generations += 1
             print(f'Generation: {total_generations}')
@@ -93,8 +101,13 @@ class GeneticAlgorithm:
 
         print(f'Total generations: {total_generations}')
         print(f'Total mutations: {total_mutations}')
-        print(f'{best.get_population_info()}, fitness: {best.fitness}')
+        print(f'{self.best.get_population_info()}, fitness: {self.best.fitness}')
 
         print('best:')
-        suitable_function.calculate_fitness(best, True)
-        return best
+        suitable_function.calculate_fitness(self.best, True)
+        return self.best
+
+    def get_best_fitness_on_second_thread(self):
+        second_thread = threading.Thread(target=self.get_best_fitness)
+        second_thread.start()
+        print('second thread started')

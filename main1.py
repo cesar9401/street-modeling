@@ -110,6 +110,8 @@ class GraphWidget(QWidget):
         self.completion_criteria_items = ['Number of generations', 'Efficiency percentage']
         self.completion_criteria_value = 100
 
+        self.algorithm: GeneticAlgorithm | None = None
+
         self.G = nx.DiGraph()
         self.figure = plt.figure(figsize=(10, 10), dpi=80)
         self.canvas = FigureCanvas(self.figure)
@@ -510,7 +512,7 @@ class GraphWidget(QWidget):
         if completion_by_generations:
             self.completion_criteria_value = math.floor(self.completion_criteria_value)
 
-        algorithm = GeneticAlgorithm(
+        self.algorithm = GeneticAlgorithm(
             self.population_size,
             self.mutations_quantity,
             self.mutations_generations_quantity,
@@ -518,10 +520,15 @@ class GraphWidget(QWidget):
             self.completion_criteria_value,
             self.current_nodes, self.current_edges
         )
-        best = algorithm.get_best_fitness()
+        self.algorithm.get_best_fitness_on_second_thread()
+        print('start_algorithm')
 
     def stop_algorithm(self):
-        pass
+        if not self.algorithm:
+            return
+
+        self.algorithm.stop = True
+        print('stop_algorithm')
 
 
 app = QApplication(sys.argv)
