@@ -10,3 +10,6 @@ venv
 
 # dot files
 dot
+
+# persistence
+*.pkl

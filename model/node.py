@@ -18,3 +18,7 @@ class Node:
 
     def __str__(self):
         return f'{self.id}: {self.label}, pos_x: {self.pos_x}, pos_y: {self.pos_y}'
+
+    def clean_node(self):
+        self.in_edges = []
+        self.out_edges = []

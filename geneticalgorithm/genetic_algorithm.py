@@ -31,8 +31,7 @@ class GeneticAlgorithm:
 
         self.connections: List[EdgeConnection] = []
         for node in self.nodes:
-            node.in_edges = []
-            node.out_edges = []
+            node.clean_node()
 
         # TODO: check nodes and edges
         for edge in self.edges:

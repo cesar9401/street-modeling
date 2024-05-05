@@ -5,7 +5,8 @@ from typing import List
 import networkx as nx
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QWidget, QDesktopWidget, QGridLayout, QVBoxLayout, QGroupBox, QPushButton, QApplication, \
-    QStyleFactory, QComboBox, QLabel, QDialog, QSpinBox, QHBoxLayout, QDoubleSpinBox, QSpacerItem, QSizePolicy
+    QStyleFactory, QComboBox, QLabel, QDialog, QSpinBox, QHBoxLayout, QDoubleSpinBox, QSpacerItem, QSizePolicy, \
+    QFileDialog
 from matplotlib import pyplot as plt
 from matplotlib.backend_tools import Cursors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -13,6 +14,8 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from geneticalgorithm.genetic_algorithm import GeneticAlgorithm
 from model.edge import Edge
 from model.node import Node
+
+from persistence import persistence_util
 
 
 class EdgeDialog(QDialog):
@@ -139,6 +142,21 @@ class GraphWidget(QWidget):
         layout.setSpacing(10)
         vertical_group_box.setLayout(layout)
 
+        # open and save button
+        # open
+        self.open_btn = QPushButton('Open')
+        self.open_btn.setObjectName('open_btn')
+        self.open_btn.clicked.connect(self.open_action)
+        layout.addWidget(self.open_btn)
+
+        # save
+        self.save_btn = QPushButton('Save')
+        self.save_btn.setObjectName('save_btn')
+        self.save_btn.clicked.connect(self.save_action)
+        layout.addWidget(self.save_btn)
+
+        layout.addSpacerItem(QSpacerItem(0, 50, QSizePolicy.Minimum, QSizePolicy.Minimum))
+
         # add aux node button here
         self.add_aux_node_btn = QPushButton('Aux Node')
         self.add_aux_node_btn.setObjectName('add_aux_node_button')
@@ -187,7 +205,7 @@ class GraphWidget(QWidget):
         layout.addWidget(self.reset_btn)
 
         # about the algorithm
-        layout.addSpacerItem(QSpacerItem(0, 150, QSizePolicy.Minimum, QSizePolicy.Minimum))
+        layout.addSpacerItem(QSpacerItem(0, 50, QSizePolicy.Minimum, QSizePolicy.Minimum))
         layout.addWidget(QLabel("About the algorithm"))
 
         # size population here
@@ -229,6 +247,12 @@ class GraphWidget(QWidget):
         self.start_algorithm_btn.setObjectName('start_algorithm')
         self.start_algorithm_btn.clicked.connect(self.start_algorithm)
         layout.addWidget(self.start_algorithm_btn)
+
+        # stop algorithm button
+        self.stop_algorithm_btn = QPushButton("Stop")
+        self.stop_algorithm_btn.setObjectName('stop_algorithm')
+        self.stop_algorithm_btn.clicked.connect(self.stop_algorithm)
+        layout.addWidget(self.stop_algorithm_btn)
 
         # add button layout
         self.grid.addLayout(self.button_layout, 0, 0)
@@ -322,6 +346,36 @@ class GraphWidget(QWidget):
 
     def on_release_button(self, event):
         self.canvas.set_cursor(Cursors.POINTER)
+
+    def open_action(self):
+        dlg = QFileDialog()
+        dlg.setAcceptMode(QFileDialog.AcceptOpen)
+        dlg.setFileMode(QFileDialog.ExistingFiles)
+        if dlg.exec_() != QDialog.Accepted:
+            return
+
+        filename = dlg.selectedFiles()[0]
+        if not filename:
+            return
+
+        wrapper = persistence_util.load_from_file(filename)
+        if not wrapper:
+            print('no info loaded')
+            return
+
+        self.reset_action()
+        self.current_nodes = wrapper.nodes
+        self.current_edges = wrapper.edges
+        self.draw_digraph()
+
+    def save_action(self):
+        save_file_info = QFileDialog().getSaveFileName()
+        if not save_file_info[0]:
+            return
+
+        filename = save_file_info[0] + '.pkl'
+        saved = persistence_util.save_to_file(self.current_nodes, self.current_edges, filename)
+        print(f'saved: {saved}')
 
     def add_aux_node(self):
         self.adding_aux_node = not self.adding_aux_node
@@ -465,6 +519,9 @@ class GraphWidget(QWidget):
             self.current_nodes, self.current_edges
         )
         best = algorithm.get_best_fitness()
+
+    def stop_algorithm(self):
+        pass
 
 
 app = QApplication(sys.argv)
