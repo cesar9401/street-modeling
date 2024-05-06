@@ -10,7 +10,7 @@ from ui import main_widget
 
 class GenericAlgorithm:
 
-    def __init__(self):
+    def __init__(self, callback):
         self.population_size: int | None = None
         self.mutations_quantity: int | None = None
         self.mutations_generations_quantity: int | None = None
@@ -25,6 +25,7 @@ class GenericAlgorithm:
         self.best: individual.Individual | None = None
 
         self.window: main_widget.MainWidget | None = None
+        self.callback = callback
 
     def __get_best_fitness(self):
         total_generations, total_mutations = 1, 0
@@ -68,7 +69,7 @@ class GenericAlgorithm:
 
         print('best:')
         suitable_function.calculate_fitness(self.best, True)
-        self.window.print_results(self.best)
+        self.__print_results()
 
     def get_best_fitness_on_second_thread(
             self,
@@ -127,3 +128,6 @@ class GenericAlgorithm:
         second_thread = threading.Thread(target=self.__get_best_fitness)
         second_thread.start()
         print('second thread started')
+
+    def __print_results(self):
+        self.callback(self.nodes, self.edges, self.best)
