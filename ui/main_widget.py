@@ -1,105 +1,30 @@
 import math
-import sys
 from typing import List
 
 import networkx as nx
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QWidget, QDesktopWidget, QGridLayout, QVBoxLayout, QGroupBox, QPushButton, QApplication, \
-    QStyleFactory, QComboBox, QLabel, QDialog, QSpinBox, QHBoxLayout, QDoubleSpinBox, QSpacerItem, QSizePolicy, \
+from PyQt5.QtWidgets import QWidget, QDesktopWidget, QGridLayout, QVBoxLayout, QGroupBox, QPushButton, \
+    QComboBox, QLabel, QDialog, QSpinBox, QHBoxLayout, QDoubleSpinBox, QSpacerItem, QSizePolicy, \
     QFileDialog
 from matplotlib import pyplot as plt
 from matplotlib.backend_tools import Cursors
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
-from geneticalgorithm.genetic_algorithm import GeneticAlgorithm
 from model.edge import Edge
 from model.node import Node
 
 from persistence import persistence_util
+from ui.edge_dialog import EdgeDialog
+
+from geneticalgorithm import individual, generic_algorithm
 
 
-class EdgeDialog(QDialog):
-    def __init__(self, current_nodes: List[Node], from_node: Node, to_node: Node, cur_edge: Edge | None):
+class MainWidget(QWidget):
+    def __init__(self, algorithm: 'generic_algorithm.GenericAlgorithm'):
         super().__init__()
-        self.current_nodes: List[Node] = current_nodes
-        self.cur_edge: Edge | None = cur_edge
-        self.from_node: Node = from_node
-        self.to_node: Node = to_node
 
-        self.setWindowTitle('Add edge')
-        self.setGeometry(100, 100, 300, 300)
-        general_layout = QVBoxLayout()
+        self.algorithm: generic_algorithm.GenericAlgorithm = algorithm
 
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignTop)
-        layout.setSpacing(10)
-
-        # from
-        self.combo1 = QComboBox()
-        self.combo1.addItems(map(lambda x: x.label, current_nodes))
-        layout.addWidget(QLabel('Node from'))
-        layout.addWidget(self.combo1)
-        if from_node:
-            self.combo1.setCurrentIndex(self.combo1.findText(from_node.label))
-
-        # to
-        self.combo2 = QComboBox()
-        self.combo2.addItems(map(lambda x: x.label, current_nodes))
-        layout.addWidget(QLabel('Node to'))
-        layout.addWidget(self.combo2)
-        if to_node:
-            self.combo2.setCurrentIndex(self.combo2.findText(to_node.label))
-
-        # capacity
-        self.capacity = QSpinBox()
-        self.capacity.setRange(0, 2147483647)
-        layout.addWidget(QLabel("Max capacity"))
-        layout.addWidget(self.capacity)
-        if cur_edge:
-            self.capacity.setValue(cur_edge.capacity)
-
-        general_layout.addLayout(layout)
-
-        # btn
-        save_btn = QPushButton('Save')
-        save_btn.setObjectName("save_btn")
-        save_btn.clicked.connect(self.on_save_btn_clicked)
-        general_layout.addWidget(save_btn)
-        self.setLayout(general_layout)
-
-        # set center
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
-
-    def on_save_btn_clicked(self):
-        from_node: Node = next(item for item in self.current_nodes if item.label == self.combo1.currentText())
-        to_node: Node = next(item for item in self.current_nodes if item.label == self.combo2.currentText())
-        capacity: int = self.capacity.value()
-
-        if not from_node or not to_node or capacity is None:
-            return
-
-        if from_node.id == to_node.id:
-            return
-
-        label = f'{from_node.label}->{to_node.label}'
-        if not self.cur_edge:
-            self.cur_edge = Edge(label, from_node, to_node, capacity)
-        else:
-            self.cur_edge.label = label
-            self.cur_edge.from_node = from_node
-            self.cur_edge.to_node = to_node
-            self.cur_edge.capacity = self.capacity.value()
-
-        print(f'edge: {self.cur_edge}, capacity: {self.cur_edge.capacity}')
-        self.close()
-
-
-class GraphWidget(QWidget):
-    def __init__(self):
-        super().__init__()
         self.total_nodes: int = 0
         self.current_nodes: List[Node] = []
         self.current_edges: List[Edge] = []
@@ -109,8 +34,6 @@ class GraphWidget(QWidget):
         self.mutations_generations_quantity: int = 1
         self.completion_criteria_items = ['Number of generations', 'Efficiency percentage']
         self.completion_criteria_value = 100
-
-        self.algorithm: GeneticAlgorithm | None = None
 
         self.G = nx.DiGraph()
         self.figure = plt.figure(figsize=(10, 10), dpi=80)
@@ -512,7 +435,7 @@ class GraphWidget(QWidget):
         if completion_by_generations:
             self.completion_criteria_value = math.floor(self.completion_criteria_value)
 
-        self.algorithm = GeneticAlgorithm(
+        self.algorithm.get_best_fitness_on_second_thread(
             self.population_size,
             self.mutations_quantity,
             self.mutations_generations_quantity,
@@ -520,7 +443,6 @@ class GraphWidget(QWidget):
             self.completion_criteria_value,
             self.current_nodes, self.current_edges
         )
-        self.algorithm.get_best_fitness_on_second_thread()
         print('start_algorithm')
 
     def stop_algorithm(self):
@@ -530,10 +452,6 @@ class GraphWidget(QWidget):
         self.algorithm.stop = True
         print('stop_algorithm')
 
-
-app = QApplication(sys.argv)
-app.aboutToQuit.connect(app.deleteLater)
-app.setStyle(QStyleFactory.create("gtk"))
-window = GraphWidget()
-window.show()
-sys.exit(app.exec_())
+    def print_results(self, best: individual.Individual):
+        print(f'Best fitness: {best.fitness}')
+        pass

@@ -12,4 +12,5 @@ venv
 dot
 
 # persistence
+demo
 *.pkl
