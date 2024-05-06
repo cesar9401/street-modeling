@@ -12,6 +12,9 @@ class EdgeConnection:
         self.min_percentage: float = 0
         self.max_percentage: float = 0
         self.current_percentage: float = 0
+        self.vehicles_could_enter: float = 0
+        self.current_vehicles_could_enter: float = 0
+        self.current_vehicles_that_enter: float = 0
 
     def __str__(self):
         return f'{self.in_edge.label} -> ({self.connection_node.label}) -> {self.out_edge.label}'

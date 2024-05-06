@@ -46,6 +46,16 @@ def calculate_fitness(ind: Individual, printing: bool = False) -> float:
             total_cars_out += cars_in
             total_paths_out += 1
 
+    for gen in gens:
+        in_edge, out_edge = gen.in_edge, gen.out_edge
+        gen.vehicles_could_enter = math.floor(in_edge.capacity * gen.current_percentage / 100)
+        if not edge_cars_quantity.get(in_edge.id) is None:
+            gen.current_vehicles_could_enter = edge_cars_quantity.get(in_edge.id)
+            gen.current_vehicles_that_enter = min(gen.vehicles_could_enter, gen.current_vehicles_could_enter)
+        else:
+            gen.current_vehicles_could_enter = gen.vehicles_could_enter
+            gen.current_vehicles_that_enter = gen.vehicles_could_enter
+
     # more than 100%
     sum_of_in_values = [x for x in list(in_percentage.values()) if x > 100]
     sum_of_out_values = [x for x in list(out_percentage.values()) if x > 100]
@@ -66,7 +76,9 @@ def calculate_fitness(ind: Individual, printing: bool = False) -> float:
     if printing:
         print(f'total_out = total_cars_out / total_paths_out = {total_out} = {total_cars_out} / {total_paths_out}')
         print(f'total_in = total_cars_in / total_paths_in = {total_in} = {total_cars_in} / {total_paths_in}')
-        print(f'used_percentage = min(1.00, total_cars_in / max_cars_in) = {total_out_percentage} = min(1.00, {total_cars_out} / {sum_max_cars_in})')
+        print(
+            f'used_percentage = min(1.00, total_cars_in / max_cars_in) = {total_out_percentage} = min(1.00, {total_cars_out} / {sum_max_cars_in})')
         print(f'fitness = {fitness} = {total_out} / {total_in} * {total_out_percentage} * 100')
+        print(edge_cars_quantity)
 
     return fitness

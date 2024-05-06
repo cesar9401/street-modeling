@@ -30,6 +30,18 @@ def print_results(nodes: List[node.Node], edges: List[edge.Edge], best: individu
         )
 
     # TODO: add labels here
+    label = '\nSimple Genetic Algorithm\n'
+    label += f'Fitness: {best.fitness}%\n'
+
+    for gen in best.gens:
+        in_edge = gen.in_edge
+        out_edge = gen.out_edge
+        _from = f'{in_edge.from_node.label}{in_edge.to_node.label}'
+        _to = f'{out_edge.from_node.label}{out_edge.to_node.label}'
+        label += f'{_from} -> {_to} = {gen.current_percentage}%'
+        label += f' (max: {gen.vehicles_could_enter}, current: {gen.current_vehicles_could_enter}, enter: {gen.current_vehicles_that_enter})\n'
+
+    dot.attr(label=label)
     dot.render('dot/sample.gv', engine='neato', view=True, format='png')
 
 
