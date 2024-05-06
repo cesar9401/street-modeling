@@ -10,6 +10,9 @@ class Individual:
         self.size: int = size
         self.gens: List[edge_connection.EdgeConnection] = gens
         self.fitness: float = 0
+        self.total_in: float = 0
+        self.total_out: float = 0
+        self.total_out_percentage: float = 0
 
     def get_population_info(self) -> str:
         return str.join(', ', list(map(lambda x: x.get_percentage_info(), self.gens)))

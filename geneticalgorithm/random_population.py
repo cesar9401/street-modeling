@@ -1,4 +1,5 @@
 import math
+from functools import reduce
 from typing import List
 
 from geneticalgorithm import individual, random_util, suitable_function
@@ -15,8 +16,11 @@ def random_population(
     for _ in range(population_size):
         gens: List[edge_connection.EdgeConnection] = []
         for gen in sample_gens:
+            in_capacity = gen.in_edge.capacity
+            out_capacity = gen.out_edge.capacity
+            high = min(100, int(in_capacity / out_capacity * 100))
             copy_gen = edge_connection.EdgeConnection.clone(gen)
-            copy_gen.current_percentage = random_util.random_int(0, 100)
+            copy_gen.current_percentage = random_util.random_int(0, high)
             gens.append(copy_gen)
         new_individual = individual.Individual(len(gens), gens)
         # evaluate individual

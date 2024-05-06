@@ -2,4 +2,5 @@ import random
 
 
 def random_int(low, high) -> int:
-    return random.randint(low, high)
+    rand = random.randint(low, high)
+    return rand

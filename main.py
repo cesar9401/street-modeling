@@ -1,19 +1,19 @@
 import sys
-from typing import List
 
 import graphviz
 from PyQt5.QtWidgets import QApplication, QStyleFactory
 from geneticalgorithm import generic_algorithm
 from ui import main_widget
 
-from model import node
-from model import edge
-from geneticalgorithm import individual
+from model import summary
 
 
-def print_results(nodes: List[node.Node], edges: List[edge.Edge], best: individual.Individual):
+def print_results(summary1: summary.Summary):
     dot = graphviz.Digraph(comment='Simple Genetic Algorithm')
     dot.attr(rankdir='LR')
+    nodes = summary1.nodes
+    edges = summary1.edges
+    best = summary1.best
 
     # add nodes to dot
     for tmp_node in nodes:
@@ -31,7 +31,7 @@ def print_results(nodes: List[node.Node], edges: List[edge.Edge], best: individu
 
     # TODO: add labels here
     label = '\nSimple Genetic Algorithm\n'
-    label += f'Fitness: {best.fitness}%\n'
+    label += f'Fitness: {best.fitness}% ({best.total_out} / {best.total_in} * {best.total_out_percentage} * 100)\n'
 
     for gen in best.gens:
         in_edge = gen.in_edge
@@ -41,6 +41,10 @@ def print_results(nodes: List[node.Node], edges: List[edge.Edge], best: individu
         label += f'{_from} -> {_to} = {gen.current_percentage}%'
         label += f' (max: {gen.vehicles_could_enter}, current: {gen.current_vehicles_could_enter}, enter: {gen.current_vehicles_that_enter})\n'
 
+    label += f'Total generations: {summary1.total_generations}\n'
+    label += f'Population size: {summary1.population_size}\n'
+    label += f'Total individuals: {summary1.total_individuals}\n'
+    label += f'Total mutations: {summary1.total_mutations}\n'
     dot.attr(label=label)
     dot.render('dot/sample.gv', engine='neato', view=True, format='png')
 
