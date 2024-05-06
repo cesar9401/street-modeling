@@ -3,6 +3,7 @@ from typing import List
 
 from model.edge import Edge
 from model.node import Node
+from model.summary import Summary
 from model.edge_connection import EdgeConnection
 from geneticalgorithm import random_population, suitable_function, individual, reproducer, random_util, mutator
 from ui import main_widget
@@ -19,6 +20,8 @@ class GenericAlgorithm:
         self.mutation_probably: float | None = None
         self.nodes: List[Node] = []
         self.edges: List[Edge] = []
+        self.total_generations = 1
+        self.total_mutations = 0
         self.stop = False
 
         self.connections: List[EdgeConnection] = []
@@ -28,27 +31,29 @@ class GenericAlgorithm:
         self.callback = callback
 
     def __get_best_fitness(self):
-        total_generations, total_mutations = 1, 0
+        self.total_generations, self.total_mutations = 1, 0
         population = random_population.random_population(
             self.population_size, self.connections, suitable_function.calculate_fitness
         )
 
         self.best = population[0]
 
-        while total_generations < self.completion_criteria_value \
+        while self.total_generations < self.completion_criteria_value \
                 if self.completion_by_generations \
                 else self.best.fitness < self.completion_criteria_value:
 
             if self.stop:
-                print(f'stopping at generation: {total_generations}')
+                print(f'stopping at generation: {self.total_generations}')
                 break
 
             for ind in population:
                 if self.best.fitness < ind.fitness:
                     self.best = ind
 
-            total_generations += 1
-            print(f'Generation: {total_generations}')
+            self.__print_results_window()
+
+            self.total_generations += 1
+            print(f'Generation: {self.total_generations}')
             new_population: list[individual.Individual] = []
             for i in range(self.population_size):
                 parent_x = random_population.select_random_individual(population)
@@ -59,12 +64,12 @@ class GenericAlgorithm:
                     new_population.append(child_xy)
                 else:
                     new_population.append(mutator.mutate(child_xy, suitable_function.calculate_fitness))
-                    total_mutations += 1
+                    self.total_mutations += 1
 
             population = new_population
 
-        print(f'Total generations: {total_generations}')
-        print(f'Total mutations: {total_mutations}')
+        print(f'Total generations: {self.total_generations}')
+        print(f'Total mutations: {self.total_mutations}')
         print(f'{self.best.get_population_info()}, fitness: {self.best.fitness}')
 
         print('best:')
@@ -130,4 +135,26 @@ class GenericAlgorithm:
         print('second thread started')
 
     def __print_results(self):
-        self.callback(self.nodes, self.edges, self.best)
+        summary = Summary(
+            self.total_generations,
+            self.total_mutations,
+            self.population_size,
+            self.best,
+            self.nodes,
+            self.edges
+        )
+
+        self.__print_results_window()
+        self.callback(summary)
+
+    def __print_results_window(self):
+        summary = Summary(
+            self.total_generations,
+            self.total_mutations,
+            self.population_size,
+            self.best,
+            self.nodes,
+            self.edges
+        )
+
+        self.window.print_results(summary)

@@ -12,6 +12,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 from model.edge import Edge
 from model.node import Node
+from model.summary import Summary
 
 from persistence import persistence_util
 from ui.edge_dialog import EdgeDialog
@@ -80,7 +81,7 @@ class MainWidget(QWidget):
         self.save_btn.clicked.connect(self.save_action)
         layout.addWidget(self.save_btn)
 
-        layout.addSpacerItem(QSpacerItem(0, 50, QSizePolicy.Minimum, QSizePolicy.Minimum))
+        layout.addSpacerItem(QSpacerItem(0, 10, QSizePolicy.Minimum, QSizePolicy.Minimum))
 
         # add aux node button here
         self.add_aux_node_btn = QPushButton('Aux Node')
@@ -130,7 +131,7 @@ class MainWidget(QWidget):
         layout.addWidget(self.reset_btn)
 
         # about the algorithm
-        layout.addSpacerItem(QSpacerItem(0, 50, QSizePolicy.Minimum, QSizePolicy.Minimum))
+        layout.addSpacerItem(QSpacerItem(0, 10, QSizePolicy.Minimum, QSizePolicy.Minimum))
         layout.addWidget(QLabel("About the algorithm"))
 
         # size population here
@@ -167,17 +168,24 @@ class MainWidget(QWidget):
         self.completion_criteria_spin.setValue(self.completion_criteria_value)
         layout.addWidget(self.completion_criteria_spin)
 
+        hlayout = QHBoxLayout()
+
         # start algorithm button
         self.start_algorithm_btn = QPushButton("Start")
         self.start_algorithm_btn.setObjectName('start_algorithm')
         self.start_algorithm_btn.clicked.connect(self.start_algorithm)
-        layout.addWidget(self.start_algorithm_btn)
+        hlayout.addWidget(self.start_algorithm_btn)
 
         # stop algorithm button
         self.stop_algorithm_btn = QPushButton("Stop")
         self.stop_algorithm_btn.setObjectName('stop_algorithm')
         self.stop_algorithm_btn.clicked.connect(self.stop_algorithm)
-        layout.addWidget(self.stop_algorithm_btn)
+        hlayout.addWidget(self.stop_algorithm_btn)
+        layout.addLayout(hlayout)
+
+        # info
+        self.info_label = QLabel('Info:\n\n')
+        layout.addWidget(self.info_label)
 
         # add button layout
         self.grid.addLayout(self.button_layout, 0, 0)
@@ -452,6 +460,8 @@ class MainWidget(QWidget):
         self.algorithm.stop = True
         print('stop_algorithm')
 
-    def print_results(self, best: individual.Individual):
-        print(f'Best fitness: {best.fitness}')
-        pass
+    def print_results(self, summary1: Summary):
+        label = 'info:\n'
+        label += f'Cur generation: {summary1.total_generations}\n'
+        label += f'Best: {summary1.best.fitness:.2f}'
+        self.info_label.setText(label)

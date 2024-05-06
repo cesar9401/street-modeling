@@ -79,6 +79,8 @@ def calculate_fitness(ind: Individual, printing: bool = False) -> float:
         print(
             f'used_percentage = min(1.00, total_cars_in / max_cars_in) = {total_out_percentage} = min(1.00, {total_cars_out} / {sum_max_cars_in})')
         print(f'fitness = {fitness} = {total_out} / {total_in} * {total_out_percentage} * 100')
-        print(edge_cars_quantity)
 
-    return fitness
+    ind.total_in = total_in
+    ind.total_out = total_out
+    ind.total_out_percentage = total_out_percentage
+    return round(fitness, 2)
